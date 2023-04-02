@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthDto } from './dto';
-import * as argon2 from 'argon2';
+// import * as argon2 from 'argon2';
+import bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 
@@ -25,7 +26,9 @@ export class AuthService {
         throw new Error('User not found');
       }
 
-      const isPasswordValid = await argon2.verify(user.password, dto.password);
+      // const isPasswordValid = await argon2.verify(user.password, dto.password);
+
+      const isPasswordValid = await bcrypt.compare(dto.password, user.password);
 
       if (!isPasswordValid) {
         throw new Error('Invalid Credentials');
@@ -56,7 +59,8 @@ export class AuthService {
         throw new Error('User already exists');
       }
 
-      const hashedPassword = await argon2.hash(dto.password);
+      // const hashedPassword = await argon2.hash(dto.password);
+      const hashedPassword = await bcrypt.hash(dto.password, 10);
 
       const user = await this.prisma.user.create({
         data: {
